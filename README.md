@@ -59,11 +59,7 @@ uvicorn app.main:app --reload
 
 Abre <http://127.0.0.1:8000>. La app arranca con una demo sembrada (5 preguntas con respuestas de panelista).
 
-Para arrancar vacío:
-
-```python
-# python -c "desde app.main import create_app" → usa create_app(seed_demo=False)
-```
+Para arrancar vacío monta `create_app(seed_demo=False)` en lugar del `app` de módulo.
 
 ## Pruebas
 
@@ -89,7 +85,11 @@ Documentación interactiva: <http://127.0.0.1:8000/docs>.
 
 ## Wiki
 
-La documentación extendida vive en la [wiki del repositorio](https://github.com/SanTacrZ/neoSkill/wiki): instalación, arquitectura, endpoints de ejemplo y flujo de la sesión.
+La documentación extendida está en [`docs/wiki/`](docs/README.md): instalación, arquitectura, API, flujo de la sesión, integración de IA y pruebas. Para publicarla en la [wiki de GitHub](https://github.com/SanTacrZ/neoSkill/wiki) (una vez habilitada en *Settings → Features → Wikis*):
+
+```bash
+./scripts/publish-wiki.sh
+```
 
 ## Licencia
 
