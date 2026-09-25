@@ -8,16 +8,30 @@ El backend está pensado para conectarse a cualquier API externa (por ejemplo, l
 
 ## Índice
 
+**Contexto**
+
 1. [Inspiración: la orquesta completa](#inspiración-la-orquesta-completa)
 2. [Investigación: knownet.naora.com.co](#investigación-knownetnaoracomco)
-3. [Características](#características)
-4. [Arquitectura](#arquitectura)
-5. [Instalación](#instalación)
-6. [Ejecutar](#ejecutar)
-7. [Pruebas](#pruebas)
-8. [API REST](#api-rest)
-9. [Wiki](#wiki)
-10. [Licencia](#licencia)
+3. [Simulación vs. proyecto real](#simulación-vs-proyecto-real)
+
+**El proyecto**
+
+4. [Características](#características)
+5. [Arquitectura](#arquitectura)
+6. [API REST](#api-rest)
+
+**Puesta en marcha**
+
+7. [Instalación](#instalación)
+8. [Ejecutar](#ejecutar)
+9. [Pruebas](#pruebas)
+
+**Referencia**
+
+10. [Wiki](#wiki)
+11. [Licencia](#licencia)
+
+---
 
 ## Inspiración: la orquesta completa
 
@@ -42,6 +56,8 @@ Aquí esa orquesta se condensa en un solo proceso (`SessionStore` + API + vista 
 | Votación final | `POST /api/questions/{id}/vote` |
 | Grafo de fuentes | Preguntas ligadas por `context_question_id` |
 
+---
+
 ## Investigación: knownet.naora.com.co
 
 Evidencia obtenida del sitio público de [knownet.naora.com.co](https://knownet.naora.com.co/), la plataforma real que esta práctica simula.
@@ -63,6 +79,37 @@ Evidencia obtenida del sitio público de [knownet.naora.com.co](https://knownet.
 
 **Límite**: el motor LLM exacto que genera las nubes, los 5 resúmenes y la "panelista IA" está detrás de login (`/w/{code}` + OTP): no es visible públicamente.
 
+---
+
+## Simulación vs. proyecto real
+
+Comparación fila por fila entre lo que hace knownet y lo que reproduce este repo:
+
+| Hallazgo de knownet | Estado aquí | Nota |
+| --- | :---: | --- |
+| Backend Python + FastAPI | ✅ | Mismo framework y mismos JSON `{"detail": ...}` |
+| JS vanilla + CSS propio | ✅ | Sin frameworks, igual que ellos |
+| IA como cuarta voz / nodo del flujo | ✅ | Panelista IA + follow-up encadenado: el núcleo visto en clase |
+| Nube de palabras (render en servidor) | 🟡 | El cálculo es server-side (`extract_keywords`), pero se pinta como texto en el DOM, no como imagen del servidor |
+| Editor de grafo node-based | 🟡 | El grafo existe como datos (`context_question_id`), sin editor visual |
+| WebSockets (`/ws`, `wss://`) | ❌ | Aquí es *polling* cada 5 s (`setInterval` en `app.js`) |
+| Templates Jinja2 server-side | ❌ | Se sirve `index.html` estático + API JSON |
+| Vista de proyección `/w/{code}/display` + QR | ❌ | Solo existe la vista única del foro |
+| Barras en vivo, matriz pairwise, Complejidad–Impacto | ❌ | Solo contador de votos simple |
+| Voz / transcripción (STT) | ❌ | No simulado |
+| Múltiples apps (experto / control / público) | ❌ | Todo en un solo proceso y una sola vista |
+| Auth OTP `/w/{code}` | ❌ | Sin login |
+
+**Veredicto**: lo más cercano al proyecto real es el **núcleo conceptual** (foro facilitado con IA como cuarta voz, resúmenes y nube server-side) y la **elección de FastAPI**. Las mayores brechas, en orden de impacto:
+
+1. **WebSockets** en lugar de *polling* → tiempo real de verdad.
+2. **Vista de proyección con QR** → pantalla separada para la sala.
+3. **Herramientas de consenso** → barras en vivo, matriz pairwise y Complejidad–Impacto.
+4. **Editor de grafo visual** → pintar el flujo que hoy solo existe en los datos.
+5. **Voz (STT)** y **apps separadas** de experto/control.
+
+---
+
 ## Características
 
 - **Preguntas del público** con autor anónimo, validación de texto y límite de 280 caracteres.
@@ -76,6 +123,8 @@ Evidencia obtenida del sitio público de [knownet.naora.com.co](https://knownet.
 - **Cadena de contexto** “del panel a la IA” visible en la interfaz.
 - **Analítica** en vivo (`/api/analytics`) con estadísticas de preguntas, respuestas humanas y de IA.
 - **Frontend estático** con *polling* cada 5 s, redacción con borrador persistente y feedback por toast.
+
+---
 
 ## Arquitectura
 
@@ -92,8 +141,8 @@ neoSkills/
 ├── tests/
 │   └── test_main.py   # Pruebas de API con TestClient
 ├── docs/
-│   ├── README.md       # Cómo publicar la wiki
-│   └── wiki/           # Páginas de la wiki (7 archivos .md)
+│   ├── README.md      # Cómo publicar la wiki
+│   └── wiki/          # Páginas de la wiki (7 archivos .md)
 ├── scripts/
 │   └── publish-wiki.sh # Publica docs/wiki/ en la wiki de GitHub
 ├── requirements.txt
@@ -104,6 +153,26 @@ neoSkills/
 - **Servidor**: FastAPI + Uvicorn. Todo el renderizado pesado (palabras clave, resúmenes, contexto) ocurre en el servidor y se envía ya listo al cliente.
 - **Estado**: `SessionStore` en memoria, con lock reentrante y semilla de demo opcional.
 - **Sustituir la IA simulada**: `SessionStore._simulated_ai_text()` es el único punto a reemplazar por una llamada real (p. ej. OpenAI). La firma de los endpoints no cambia.
+
+---
+
+## API REST
+
+| Método | Ruta | Descripción |
+| --- | --- | --- |
+| `GET` | `/` | Interfaz del foro |
+| `GET` | `/api/health` | Salud del servicio |
+| `GET` | `/api/state` | Estado completo (preguntas, panelistas, analítica) |
+| `GET` | `/api/analytics` | Palabras clave, 5 resúmenes y cadena de contexto |
+| `POST` | `/api/questions` | Crear pregunta `{"text", "author"}` |
+| `POST` | `/api/questions/{id}/vote` | Votar una pregunta |
+| `POST` | `/api/questions/{id}/panelist-answer` | Responder como panelista `{"panelist", "text"}`; dispara follow-up de IA |
+| `POST` | `/api/questions/{id}/ai-answer` | Responder con IA (usa contexto de panel) |
+| `POST` | `/api/reset` | Reiniciar la sesión |
+
+Documentación interactiva: <http://127.0.0.1:8000/docs>.
+
+---
 
 ## Instalación
 
@@ -131,25 +200,13 @@ Para arrancar vacío monta `create_app(seed_demo=False)` en lugar del `app` de m
 python -m pytest -q
 ```
 
-## API REST
+Salida esperada: `5 passed`.
 
-| Método | Ruta | Descripción |
-| --- | --- | --- |
-| `GET` | `/` | Interfaz del foro |
-| `GET` | `/api/health` | Salud del servicio |
-| `GET` | `/api/state` | Estado completo (preguntas, panelistas, analítica) |
-| `GET` | `/api/analytics` | Palabras clave, 5 resúmenes y cadena de contexto |
-| `POST` | `/api/questions` | Crear pregunta `{"text", "author"}` |
-| `POST` | `/api/questions/{id}/vote` | Votar una pregunta |
-| `POST` | `/api/questions/{id}/panelist-answer` | Responder como panelista `{"panelist", "text"}`; dispara follow-up de IA |
-| `POST` | `/api/questions/{id}/ai-answer` | Responder con IA (usa contexto de panel) |
-| `POST` | `/api/reset` | Reiniciar la sesión |
-
-Documentación interactiva: <http://127.0.0.1:8000/docs>.
+---
 
 ## Wiki
 
-La documentación extendida está en [`docs/wiki/`](docs/README.md): instalación, arquitectura, API, flujo de la sesión, integración de IA y pruebas. Para publicarla en la [wiki de GitHub](https://github.com/SanTacrZ/neoSkill/wiki) (una vez habilitada en *Settings → Features → Wikis*):
+La documentación extendida está en [`docs/`](docs/README.md): instalación, arquitectura, API, flujo de la sesión, integración de IA y pruebas. Para publicarla en la [wiki de GitHub](https://github.com/SanTacrZ/neoSkill/wiki) (una vez habilitada en *Settings → Features → Wikis*):
 
 ```bash
 ./scripts/publish-wiki.sh
