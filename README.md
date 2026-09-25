@@ -29,6 +29,35 @@ Aquí esa orquesta se condensa en un solo proceso (`SessionStore` + API + vista 
 | Votación final | `POST /api/questions/{id}/vote` |
 | Grafo de fuentes | Preguntas ligadas por `context_question_id` |
 
+## Investigación: knownet.naora.com.co
+
+Evidencia obtenida del sitio público de [knownet.naora.com.co](https://knownet.naora.com.co/), la plataforma real que esta práctica simula.
+
+### Stack técnico de la plataforma
+
+- **Python + FastAPI/Starlette**: respuestas JSON `{"detail": "Not Found"}`, `{"detail": "Method Not Allowed"}`, `{"detail": "Flow not found."}` (rutas `/auth/request-code`, `/auth/verify-code`, `/api/public/contact/captcha`).
+- **Templates server-side (Jinja2)**: `styles.css` referencia `moderator_display.html`, `workflow_live.html`, `workflow_responses.html`.
+- **WebSockets para tiempo real**: `window.appWsUrl()` genera `wss://host/...` y existe ruta `/ws` → actualización en vivo de nubes y barras.
+- **Frontend vanilla JS** (sin React/Vue), CSS propio, tipografía Google Fonts Inter; **Cloudflare** (CDN/WAF) delante de un origen **nginx**.
+
+### Funciones "inteligentes" que coinciden con lo visto en la conferencia
+
+- **Nube de palabras por panelista**: `.word-cloud`, `.word-cloud-image`, `.graph-word-cloud-*` → imagen generada en servidor + lista de términos (frecuencia/coincidencias).
+- **Vista de proyección** `/w/{code}/display` con QR (`.display-banner-qr`, `.display-qr-overlay`) → el público responde desde su celular.
+- **Barras en vivo** (`.live-bars`) para votación/consenso, **5 ideas principales** como síntesis (`.display-idea-list`, `renderIdeaList`), gráfico **Complejidad–Impacto** SVG, matriz pairwise, ranking con arrastre y KPIs de reporte.
+- **Voz/transcripción**: `.workflow-mic-btn.is-recording` / `.is-transcribing` → dictado de ideas (STT).
+- **Editor de grafo node-based** (`.graph-node`, `.graph-port-pin`, `.graph-edge-path`) que arma los flujos de preguntas/votaciones/síntesis.
+- El sitio se define como **"Facilitación asistida por IA"** → la IA que participaba como cuarta voz es un nodo de ese flujo.
+
+### Prueba dura de IA generativa
+
+- `static/img/knownet.png` contiene **metadatos C2PA**: `Software Agent Name: ChatGPT`, `version: gpt-image`, `Claim Generator: OpenAI Media Service API`, `digitalSourceType: trainedAlgorithmicMedia`, firmado por **OpenAI OpCo, LLC**.
+- Comentario en el CSS: **"ver CLAUDE.md"** (sesión 2026-09-21) → el código se desarrolló con **Claude Code** (Anthropic).
+
+### Límite
+
+El motor LLM exacto que genera las nubes, los 5 resúmenes y la "panelista IA" está detrás de login (`/w/{code}` + OTP): no es visible públicamente.
+
 ## Características
 
 - **Preguntas del público** con autor anónimo, validación de texto y límite de 280 caracteres.
