@@ -1,12 +1,14 @@
 # neoSkill · Foro Vivo
 
+**IA / LLMs · Agentes · HTTPS · WebSockets**
+
 Foro participativo en tiempo real: el público envía preguntas, los panelistas responden y una IA simulada encadena nuevas preguntas y respuestas a partir del contexto de la sala. Todo se alimenta con análisis de palabras clave, 5 resúmenes automáticos y una cadena de contexto que va del panel a la IA.
 
 El backend está pensado para conectarse a cualquier API externa (por ejemplo, la API de OpenAI) detrás de los mismos endpoints: la capa de “IA” está aislada en `app/services.py` y hoy funciona sin claves con una simulación determinista.
 
 ## Inspiración: la orquesta completa
 
-Este proyecto es una **práctica académica que simula** un sistema mayor construido en clase, cuya arquitectura real usa la API de OpenAI por detrás, con renderizado en el servidor (nube de palabras incluida) y streaming de imágenes y texto nuevo hacia el cliente.
+Este proyecto es una **práctica académica que simula** un sistema mayor construido en clase, cuya arquitectura real usa **LLMs**, **agentes**, **HTTPs** y **WebSockets** por detrás (además de la API de OpenAI), con renderizado en el servidor (nube de palabras incluida) y streaming de imágenes y texto nuevo hacia el cliente.
 
 Ese sistema completo estaba dividido en **varias aplicaciones independientes**:
 
