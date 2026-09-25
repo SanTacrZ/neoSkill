@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Foro participativo con panelists y respuestas de IA simuladas." />
+    <title>Foro Vivo · Conversaciones en contexto</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+    <script src="/static/app.js" defer></script>
+  </head>
+  <body>
+    <div class="page-noise"></div>
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="Foro Vivo, inicio">
+        <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span class="brand-name">Foro<span>Vivo</span></span>
+      </a>
+      <div class="session-status">
+        <span class="status-pulse"></span>
+        <span>Sesión abierta</span>
+        <span class="status-divider"></span>
+        <span id="connectionStatus">Conectando</span>
+      </div>
+      <button class="outline-button" id="resetButton" type="button">Reiniciar demo</button>
+    </header>
+
+    <main class="page-shell">
+      <section class="hero-section">
+        <div class="hero-copy">
+          <p class="eyebrow"><span></span> Conversaciones que avanzan contigo</p>
+          <h1>Las preguntas que <em>unen</em> la sala.</h1>
+          <p class="hero-description">
+            Comparte una pregunta, escucha a los panelistas y observa cómo la conversación
+            encuentra nuevas conexiones en tiempo real.
+          </p>
+        </div>
+        <div class="hero-visual" aria-hidden="true">
+          <div class="orbit orbit-one"></div>
+          <div class="orbit orbit-two"></div>
+          <div class="orbit-core"><span>conversa</span><strong>01</strong></div>
+          <div class="orbit-tag tag-one">preguntas</div>
+          <div class="orbit-tag tag-two">respuestas</div>
+          <div class="orbit-tag tag-three">contexto</div>
+        </div>
+      </section>
+
+      <section class="stats-grid" id="statsGrid" aria-label="Resumen de la sesión">
+        <article class="stat-card stat-primary">
+          <div class="stat-label"><span class="stat-dot"></span> Preguntas abiertas</div>
+          <strong id="questionCount">0</strong>
+          <span class="stat-caption">la voz de la sala</span>
+        </article>
+        <article class="stat-card">
+          <div class="stat-label"><span class="stat-dot dot-cyan"></span> Respuestas</div>
+          <strong id="responseCount">0</strong>
+          <span class="stat-caption">humanas + IA simulada</span>
+        </article>
+        <article class="stat-card">
+          <div class="stat-label"><span class="stat-dot dot-violet"></span> Conexiones IA</div>
+          <strong id="aiCount">0</strong>
+          <span class="stat-caption">respuestas desde contexto</span>
+        </article>
+        <article class="stat-card">
+          <div class="stat-label"><span class="stat-dot dot-yellow"></span> Palabras clave</div>
+          <strong id="keywordCount">0</strong>
+          <span class="stat-caption">temas que más se repiten</span>
+        </article>
+      </section>
+
+      <section class="content-grid">
+        <div class="feed-column">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow"><span></span> Plaza de preguntas</p>
+              <h2>¿Qué está resonando?</h2>
+            </div>
+            <span class="live-badge"><span></span> En vivo</span>
+          </div>
+
+          <form class="question-composer" id="questionForm">
+            <div class="composer-heading">
+              <div class="avatar avatar-coral">TÚ</div>
+              <div>
+                <strong>Participa sin nombre</strong>
+                <span>Tu pregunta verá toda la sala</span>
+              </div>
+            </div>
+            <textarea
+              id="questionText"
+              name="text"
+              maxlength="280"
+              placeholder="Escribe una pregunta para la mesa..."
+              required
+            ></textarea>
+            <div class="composer-footer">
+              <div class="character-count"><span id="characterCount">0</span>/280</div>
+              <button class="primary-button" type="submit">
+                <span>Enviar pregunta</span><span class="button-arrow">↗</span>
+              </button>
+            </div>
+          </form>
+
+          <div class="feed-toolbar">
+            <span id="feedCount">0 preguntas en la conversación</span>
+            <div class="sort-control" aria-label="Orden de preguntas">
+              <span>Orden:</span>
+              <button class="sort-button active" data-sort="recent" type="button">Recientes</button>
+              <button class="sort-button" data-sort="popular" type="button">Más votadas</button>
+            </div>
+          </div>
+          <div class="questions-list" id="questionsList" aria-live="polite"></div>
+        </div>
+
+        <aside class="insights-column">
+          <section class="insight-card keyword-card">
+            <div class="card-heading">
+              <div>
+                <p class="eyebrow"><span></span> Mapa de la conversación</p>
+                <h3>Palabras que más pesan</h3>
+              </div>
+              <span class="card-icon cloud-icon" aria-hidden="true">•••</span>
+            </div>
+            <div class="keyword-cloud" id="keywordCloud"></div>
+            <p class="card-footnote">Tamaño y color muestran la frecuencia en preguntas y respuestas.</p>
+          </section>
+
+          <section class="insight-card summary-card">
+            <div class="card-heading">
+              <div>
+                <p class="eyebrow"><span></span> Lectura rápida</p>
+                <h3>5 respuestas resumen</h3>
+              </div>
+              <span class="summary-number">05</span>
+            </div>
+            <div class="summary-list" id="summariesList"></div>
+          </section>
+
+          <section class="insight-card context-card" id="contextCard">
+            <div class="card-heading">
+              <div>
+                <p class="eyebrow"><span></span> Cadena de contexto</p>
+                <h3>Del panel a la IA</h3>
+              </div>
+              <span class="card-icon context-icon" aria-hidden="true">↗</span>
+            </div>
+            <div id="contextContent"></div>
+          </section>
+        </aside>
+      </section>
+    </main>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </body>
+</html>
