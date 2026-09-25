@@ -6,6 +6,19 @@ Foro participativo en tiempo real: el público envía preguntas, los panelistas 
 
 El backend está pensado para conectarse a cualquier API externa (por ejemplo, la API de OpenAI) detrás de los mismos endpoints: la capa de “IA” está aislada en `app/services.py` y hoy funciona sin claves con una simulación determinista.
 
+## Índice
+
+1. [Inspiración: la orquesta completa](#inspiración-la-orquesta-completa)
+2. [Investigación: knownet.naora.com.co](#investigación-knownetnaoracomco)
+3. [Características](#características)
+4. [Arquitectura](#arquitectura)
+5. [Instalación](#instalación)
+6. [Ejecutar](#ejecutar)
+7. [Pruebas](#pruebas)
+8. [API REST](#api-rest)
+9. [Wiki](#wiki)
+10. [Licencia](#licencia)
+
 ## Inspiración: la orquesta completa
 
 Este proyecto es una **práctica académica que simula** un sistema mayor construido en clase, cuya arquitectura real usa **LLMs**, **agentes**, **HTTPs** y **WebSockets** por detrás (además de la API de OpenAI), con renderizado en el servidor (nube de palabras incluida) y streaming de imágenes y texto nuevo hacia el cliente.
@@ -33,30 +46,22 @@ Aquí esa orquesta se condensa en un solo proceso (`SessionStore` + API + vista 
 
 Evidencia obtenida del sitio público de [knownet.naora.com.co](https://knownet.naora.com.co/), la plataforma real que esta práctica simula.
 
-### Stack técnico de la plataforma
+| Área | Qué se encontró | Evidencia |
+| --- | --- | --- |
+| Backend | Python + FastAPI | Errores JSON `{"detail": "Flow not found."}`, rutas `/auth/request-code`, `/api/public/contact/captcha` |
+| Tiempo real | WebSockets | `appWsUrl()` → `wss://host/...`, ruta `/ws` |
+| Frontend | HTML/Jinja2 + JS vanilla, CSS propio, Google Fonts | Templates citados en CSS: `moderator_display.html`, `workflow_live.html`, `workflow_responses.html` |
+| Infra | Cloudflare + nginx | Headers `server: cloudflare`, `cf-ray`, origin nginx |
+| Nube de palabras | Imagen generada en servidor + términos frecuentes | `.word-cloud-image`, `.graph-word-cloud-*`, `.word-cloud-term` |
+| Participación del público | Vista de proyección `/w/{code}/display` con QR | `.display-banner-qr`, `.display-qr-overlay` |
+| Votación/consenso | Barras en vivo, ranking, matriz pairwise, gráfico Complejidad–Impacto SVG | `.live-bars`, `.complexity-chart-svg`, `.report-kpis` |
+| Voz | Dictado/transcripción (micrófono) | `.workflow-mic-btn.is-recording` / `.is-transcribing` |
+| Editor de grafo | Flujos node-based de preguntas/votaciones/síntesis | `.graph-node`, `.graph-port-pin`, `.graph-edge-path` |
+| Facilitación asistida por IA | El sitio se define así: la IA participa como nodo/cuarta voz del flujo | Texto público del sitio |
+| IA generativa | Banner generado con ChatGPT / gpt-image | Metadatos C2PA en `knownet.png`: OpenAI Media Service API, `trainedAlgorithmicMedia` |
+| Desarrollo asistido | Código hecho con Claude Code | Comentario CSS: `ver CLAUDE.md` |
 
-- **Python + FastAPI/Starlette**: respuestas JSON `{"detail": "Not Found"}`, `{"detail": "Method Not Allowed"}`, `{"detail": "Flow not found."}` (rutas `/auth/request-code`, `/auth/verify-code`, `/api/public/contact/captcha`).
-- **Templates server-side (Jinja2)**: `styles.css` referencia `moderator_display.html`, `workflow_live.html`, `workflow_responses.html`.
-- **WebSockets para tiempo real**: `window.appWsUrl()` genera `wss://host/...` y existe ruta `/ws` → actualización en vivo de nubes y barras.
-- **Frontend vanilla JS** (sin React/Vue), CSS propio, tipografía Google Fonts Inter; **Cloudflare** (CDN/WAF) delante de un origen **nginx**.
-
-### Funciones "inteligentes" que coinciden con lo visto en la conferencia
-
-- **Nube de palabras por panelista**: `.word-cloud`, `.word-cloud-image`, `.graph-word-cloud-*` → imagen generada en servidor + lista de términos (frecuencia/coincidencias).
-- **Vista de proyección** `/w/{code}/display` con QR (`.display-banner-qr`, `.display-qr-overlay`) → el público responde desde su celular.
-- **Barras en vivo** (`.live-bars`) para votación/consenso, **5 ideas principales** como síntesis (`.display-idea-list`, `renderIdeaList`), gráfico **Complejidad–Impacto** SVG, matriz pairwise, ranking con arrastre y KPIs de reporte.
-- **Voz/transcripción**: `.workflow-mic-btn.is-recording` / `.is-transcribing` → dictado de ideas (STT).
-- **Editor de grafo node-based** (`.graph-node`, `.graph-port-pin`, `.graph-edge-path`) que arma los flujos de preguntas/votaciones/síntesis.
-- El sitio se define como **"Facilitación asistida por IA"** → la IA que participaba como cuarta voz es un nodo de ese flujo.
-
-### Prueba dura de IA generativa
-
-- `static/img/knownet.png` contiene **metadatos C2PA**: `Software Agent Name: ChatGPT`, `version: gpt-image`, `Claim Generator: OpenAI Media Service API`, `digitalSourceType: trainedAlgorithmicMedia`, firmado por **OpenAI OpCo, LLC**.
-- Comentario en el CSS: **"ver CLAUDE.md"** (sesión 2026-09-21) → el código se desarrolló con **Claude Code** (Anthropic).
-
-### Límite
-
-El motor LLM exacto que genera las nubes, los 5 resúmenes y la "panelista IA" está detrás de login (`/w/{code}` + OTP): no es visible públicamente.
+**Límite**: el motor LLM exacto que genera las nubes, los 5 resúmenes y la "panelista IA" está detrás de login (`/w/{code}` + OTP): no es visible públicamente.
 
 ## Características
 
