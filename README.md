@@ -4,6 +4,29 @@ Foro participativo en tiempo real: el público envía preguntas, los panelistas 
 
 El backend está pensado para conectarse a cualquier API externa (por ejemplo, la API de OpenAI) detrás de los mismos endpoints: la capa de “IA” está aislada en `app/services.py` y hoy funciona sin claves con una simulación determinista.
 
+## Inspiración: la orquesta completa
+
+Este proyecto es una **práctica académica que simula** un sistema mayor construido en clase, cuya arquitectura real usa la API de OpenAI por detrás, con renderizado en el servidor (nube de palabras incluida) y streaming de imágenes y texto nuevo hacia el cliente.
+
+Ese sistema completo estaba dividido en **varias aplicaciones independientes**:
+
+- una **solo para el experto** (panelista);
+- otra **solo para quien maneja la presentación**;
+- una app de público/visión (la que aquí emula este foro).
+
+El flujo estaba modelado **como un grafo**: quien controla desde su app decide qué pantalla se muestra en cada momento; cuando todas las fuentes de información están listas, se ejecutan los **mixers** que construyen los resúmenes, se pasan a la pantalla de muestra y, al final, viene la **votación**. Todo ese flujo lo orquesta la app de control: por detrás hay un trabajo robusto y una arquitectura bien diseñada, y esta práctica solo intenta simular esa orquesta completa en un proceso único.
+
+Aquí esa orquesta se condensa en un solo proceso (`SessionStore` + API + vista estática) para poder estudiarla y extenderla:
+
+| Sistema original | Equivalente en este repo |
+| --- | --- |
+| App del experto | `POST /api/questions/{id}/panelist-answer` |
+| App de control de presentación | Orden del feed y acciones sobre `/api/state` |
+| Mixers → resúmenes | `SessionStore.build_summaries()` (5 tarjetas) |
+| Nube de palabras (render en servidor) | `extract_keywords()` → `/api/analytics` |
+| Votación final | `POST /api/questions/{id}/vote` |
+| Grafo de fuentes | Preguntas ligadas por `context_question_id` |
+
 ## Características
 
 - **Preguntas del público** con autor anónimo, validación de texto y límite de 280 caracteres.
@@ -32,6 +55,11 @@ neoSkills/
 │   └── styles.css     # Estilos
 ├── tests/
 │   └── test_main.py   # Pruebas de API con TestClient
+├── docs/
+│   ├── README.md       # Cómo publicar la wiki
+│   └── wiki/           # Páginas de la wiki (7 archivos .md)
+├── scripts/
+│   └── publish-wiki.sh # Publica docs/wiki/ en la wiki de GitHub
 ├── requirements.txt
 ├── requirements-dev.txt
 └── pytest.ini
